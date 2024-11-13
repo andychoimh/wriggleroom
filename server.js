@@ -216,3 +216,6 @@ app.get('/api/leaderboard', async (req, res) => {
     res.status(500).send('Error fetching leaderboard data.');
   }
 });
+
+console.log("Account SID:", process.env.TWILIO_ACCOUNT_SID);
+console.log("Auth Token:", process.env.TWILIO_AUTH_TOKEN);
