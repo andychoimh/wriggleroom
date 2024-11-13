@@ -15,9 +15,9 @@ const prisma = new PrismaClient();
 // Needed for Twilio
 const twilio = require('twilio');
 
-// Twilio Account SID and Auth Token
-const accountSid = 'ACe78e58c3188128c08928827aa8a3267d';
-const authToken = '72b5f78ca1b4ecadeeba7124ccea0857';   
+// Retrieve Twilio credentials from environment variables
+const accountSid = process.env.TWILIO_ACCOUNT_SID;
+const authToken = process.env.TWILIO_AUTH_TOKEN;   
 
 const twilioClient = new twilio(accountSid, authToken);
 
