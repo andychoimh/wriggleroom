@@ -1,5 +1,5 @@
 // Needed for dotenv
-//require("dotenv").config();
+require("dotenv").config();
 
 // Needed for Express
 var express = require('express');
@@ -19,7 +19,7 @@ const twilio = require('twilio');
 const accountSid = process.env.TWILIO_ACCOUNT_SID;
 const authToken = process.env.TWILIO_AUTH_TOKEN;   
 
-const twilioClient = new twilio(accountSid, authToken);
+const twilioClient = twilio(accountSid, authToken);
 
 app.use(express.json()); // To parse JSON request bodies
 app.use(express.static('public')); // To serve static files (HTML, CSS, JS)
