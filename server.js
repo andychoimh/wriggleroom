@@ -217,5 +217,33 @@ app.get('/api/leaderboard', async (req, res) => {
   }
 });
 
-console.log("Account SID:", process.env.TWILIO_ACCOUNT_SID);
-console.log("Auth Token:", process.env.TWILIO_AUTH_TOKEN);
+const meetingRequestForm = document.getElementById('meeting-request-form');
+
+meetingRequestForm.addEventListener('submit', async (event) => {
+  event.preventDefault(); // Prevent default form submission
+
+  const formData = new FormData(meetingRequestForm);
+  const requestData = {};
+  formData.forEach((value, key) => {
+    requestData[key] = value;
+  });
+
+  try {
+    const response = await fetch('/api/find-rooms', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(requestData),
+    });
+
+    const data = await response.json();
+    console.log(data);   
+ // Log the response from the API
+
+    // TODO: Display available and booked rooms in the UI
+  } catch (error) {
+    console.error('Error fetching rooms:', error);
+    // TODO: Display an error message in the UI
+  }
+});
