@@ -1,5 +1,5 @@
 // Needed for dotenv
-require("dotenv").config();
+//require("dotenv").config();
 
 // Needed for Express
 var express = require('express');
