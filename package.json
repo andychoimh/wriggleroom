@@ -1,0 +1,22 @@
+{
+  "name": "wriggleroom",
+  "version": "1.0.0",
+  "description": "TechUp Run 3 MVP",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@prisma/client": "^5.22.0",
+    "cirrus-ui": "^0.7.2-patch.1",
+    "express": "^4.21.1",
+    "pg": "^8.13.1",
+    "twilio": "^5.3.5"
+  },
+  "devDependencies": {
+    "prisma": "^5.22.0"
+  }
+}
