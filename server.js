@@ -40,6 +40,28 @@ app.listen(port, () => {
   console.log(`Server listening on port ${port}`);
 });
 
+app.post('/api/get-user-id', async (req, res) => {
+  const { userName } = req.body;
+
+  try {
+    let user = await prisma.users.findUnique({
+      where: { user_name: userName },
+    });
+
+    if (!user) {
+      // User doesn't exist, create a new user
+      user = await prisma.users.create({
+        data: { user_name: userName },
+      });
+    }
+
+    res.json({ userId: user.user_id });
+  } catch (error) {
+    console.error('Error fetching or creating user:', error);
+    res.status(500).send('Error fetching or creating user.');
+  }
+});
+
 app.post('/api/find-rooms', async (req, res) => {
   const { startDate, startTime, endTime, attendees } = req.body;
 
@@ -85,6 +107,7 @@ app.post('/api/broadcast-request', async (req, res) => {
     // 1. Convert startDate and times to Date objects
     const startDateTime = new Date(`${startDate}T${startTime}`);
     const endDateTime = new Date(`${startDate}T${endTime}`);
+    const requestorId = sessionStorage.getItem('requestorId');
 
     // 2. Find potential Booking Owners
     const potentialOwners = await prisma.meeting_rooms.findMany({
@@ -96,7 +119,18 @@ app.post('/api/broadcast-request', async (req, res) => {
           ],
         },
       },
-      select: { booked_by: true }, // Only select the 'booked_by' field
+      select: { booked_by: true, room_name: true }, // Only select the 'booked_by' field
+    });
+
+    // Store the broadcast request
+    await prisma.broadcast_requests.create({
+      data: {
+        requestor_id: requestorId,
+        room_name: potentialOwners[0].room_name, // Assuming all potential owners have the same room name
+        start_time: startDateTime,
+        end_time: endDateTime,
+        attendees: attendees,
+      },
     });
 
     // 3. Send SMS notifications to Booking Owners
@@ -109,8 +143,9 @@ app.post('/api/broadcast-request', async (req, res) => {
       });
 
       if (user && user.phone_number) {
+        const requestsUrl = `https://wriggleroom.work/requests.html?userName=${user.user_name}`; // Generate URL with userName
         const message = await twilioClient.messages.create({
-          body: `Meeting request for ${startDate}, ${startTime} - ${endTime}`,
+          body: `Meeting request for ${owner.room_name} on ${startDate}, ${startTime} - ${endTime}`,
           from: 'YOUR_TWILIO_PHONE_NUMBER',
           to: user.phone_number,
         });
@@ -217,4 +252,79 @@ app.get('/api/leaderboard', async (req, res) => {
   }
 });
 
+app.get('/api/get-requests', async (req, res) => {
+  const userName = req.query.userName;
 
+  try {
+    // Fetch the Booking Owner's bookings
+    const bookings = await prisma.meeting_rooms.findMany({
+      where: { booked_by: userName },
+    });
+
+    const requests = [];
+    for (const booking of bookings) {
+      // Fetch broadcast requests matching the booking
+      const matchingRequests = await prisma.broadcast_requests.findMany({
+        where: {
+          room_name: booking.room_name,
+          start_time: { lte: booking.booking_end },
+          end_time: { gte: booking.booking_start },
+        },
+      });
+      requests.push(...matchingRequests);
+    }
+
+    res.json(requests);
+  } catch (error) {
+    console.error('Error fetching requests:', error);
+    res.status(500).send('Error fetching requests.');
+  }
+});
+
+app.post('/api/respond-to-request', async (req, res) => {
+  const { requestId, decision, userName } = req.body; // Include userName
+
+  try {
+    // 1. Fetch the request and related data
+    const request = await prisma.broadcast_requests.findUnique({
+      where: { request_id: parseInt(requestId) }, // Assuming requestId is an integer
+      include: {
+        requestor: { select: { user_name: true } }, // Include requestor's user_name
+      },
+    });
+
+    if (!request) {
+      return res.status(404).send('Request not found.');
+    }
+
+    // 2. Update the meeting room booking
+    if (decision === 'accept') {
+      // Update the meeting room booking in meeting_rooms table
+      // You'll need to implement the logic to find the corresponding booking and update it
+      // ...
+
+      // Update points for the Booking Owner and Requestor
+      await prisma.users.update({
+        where: { user_name: userName },
+        data: { appreciate_you_points: { increment: 1 } },
+      });
+      await prisma.users.update({
+        where: { user_name: request.requestor.user_name },
+        data: { activity_points: { increment: 1 } },
+      });
+
+      // Send confirmation SMS to the Requestor
+      // ...
+    }
+
+    // 3. Delete the broadcast request
+    await prisma.broadcast_requests.delete({
+      where: { request_id: parseInt(requestId) },
+    });
+
+    res.send('Response processed successfully.');
+  } catch (error) {
+    console.error('Error responding to request:', error);
+    res.status(500).send('Error responding to request.');
+  }
+});
