@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Meeting Room Booking</title>
+    <title>WriggleRoom Meeting Room Booking Made Easy</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/cirrus-ui@0.14.1/dist/cirrus.min.css">
     <link rel="stylesheet" href="style.css"> </head>
 <body>
@@ -18,44 +18,48 @@
           <button id="submit-name" class="btn btn-primary">Submit</button>
         </div>        
         
-        <form id="meeting-request-form">
-          </form>
-    
-        <div id="rooms-container">
+        <form id="meeting-request-form" style="display: none;"> <div class="grid-container">
+          <div class="col-6">
+            <div class="form-group">
+              <label for="start-date">Date:</label>
+              <input type="date" id="start-date" name="startDate" required>
+            </div>
           </div>
-
-        <form id="meeting-request-form">
-          <div class="form-group">
-            <label for="start-date">Date:</label>
-            <input type="date" id="start-date" name="startDate" required>
+          <div class="col-6">
+            <div class="form-group">
+              <label for="attendees">Number of Attendees:</label>
+              <input type="number" id="attendees" name="attendees" min="1" required>
+            </div>
           </div>
-      
-          <div class="form-group">
-            <label for="start-time">Start Time:</label>
-            <input type="time" id="start-time" name="startTime" min="08:30" max="19:00" required>
-          </div>
-      
-          <div class="form-group">
-            <label for="end-time">End Time:</label>
-            <input type="time" id="end-time" name="endTime" min="08:30" max="19:00" required>
-          </div>
-      
-          <div class="form-group">
-            <label for="attendees">Number of Attendees:</label>
-            <input type="number" id="attendees" name="attendees" min="1" required>
-          </div>
-      
-          <button type="submit" class="btn btn-primary">Find Rooms</button>
-        </form>
-
-        <h2>Available Rooms</h2>
-        <ul id="available-rooms"></ul>
-      
-        <h2>Booked Rooms</h2>
-        <ul id="booked-rooms"></ul>
-        
         </div>
-
+  
+        <div class="grid-container">
+          <div class="col-6">
+            <div class="form-group">
+              <label for="start-time">Start Time:</label>
+              <input type="time" id="start-time" name="startTime" min="08:30" max="19:00" required>
+            </div>
+          </div>
+          <div class="col-6">
+            <div class="form-group">
+              <label for="end-time">End Time:</label>
+              <input type="time" id="end-time" name="endTime" min="08:30" max="19:00" required>
+            </div>
+          </div>
+        </div>
+  
+        <button type="submit" class="btn btn-primary">Find Rooms</button>
+      </form>
+  
+      <div id="rooms-container"> 
+        <h2>Available Rooms</h2>
+        <ul id="available-rooms" class="flex-container"></ul>
+  
+        <h2>Booked Rooms</h2>
+        <ul id="booked-rooms" class="flex-container"></ul>
+      </div>
+    </div>
+  
     <script src="script.js"></script>
-</body>
-</html>
+  </body>
+  </html>

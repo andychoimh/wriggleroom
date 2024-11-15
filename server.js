@@ -70,19 +70,19 @@ app.post('/api/find-rooms', async (req, res) => {
     const startDateTime = new Date(`${startDate}T${startTime}`);
     const endDateTime = new Date(`${startDate}T${endTime}`);
 
-    // 2. Fetch available rooms
+    // 2. Find rooms with sufficient capacity
     const availableRooms = await prisma.meeting_rooms.findMany({
       where: {
-        OR: [
-          { booking_start: { gte: endDateTime } }, // Booking starts after requested time
-          { booking_end: { lte: startDateTime } },   // Booking ends before requested time
-        ],
+        capacity: { 
+          gte: parseInt(attendees),
+         },
       },
     });
 
-    // 3. Fetch potentially overlapping booked rooms
-    const bookedRooms = await prisma.meeting_rooms.findMany({
+    // 3. Check for overlapping bookings
+    const roomsWithBookings = await prisma.bookings.findMany({
       where: {
+        room_id: { in: availableRooms.map(room => room.room_id) }, // Check only rooms with enough capacity
         NOT: {
           OR: [
             { booking_start: { gte: endDateTime } },
@@ -90,10 +90,27 @@ app.post('/api/find-rooms', async (req, res) => {
           ],
         },
       },
+      include: { // Use only include
+        meeting_room: {
+          select: { // Select the required fields from meeting_room
+            room_id: true,
+            room_name: true,
+            location: true,
+          }
+        }
+      }
     });
 
-    // 4. Send the response
-    res.json({ availableRooms, bookedRooms });
+    // 4. Filter out rooms with overlapping bookings
+    const trulyAvailableRooms = availableRooms.filter(room => {
+      return !roomsWithBookings.some(booking => booking.meeting_room.room_id === room.room_id);
+    });
+
+    // 5. Send the response
+    res.json({ 
+      availableRooms: trulyAvailableRooms, 
+      bookedRooms: roomsWithBookings 
+    });
   } catch (error) {
     console.error(error);
     res.status(500).send('Error fetching rooms.');
@@ -145,8 +162,8 @@ app.post('/api/broadcast-request', async (req, res) => {
       if (user && user.phone_number) {
         const requestsUrl = `https://wriggleroom.work/requests.html?userName=${user.user_name}`; // Generate URL with userName
         const message = await twilioClient.messages.create({
-          body: `Meeting request for ${owner.room_name} on ${startDate}, ${startTime} - ${endTime}`,
-          from: 'YOUR_TWILIO_PHONE_NUMBER',
+          body: `Someone is requesting request for ${owner.room_name} on ${startDate}, ${startTime} - ${endTime}. Do view request, click here ${requestsUrl}`,
+          from: '+14146221997',
           to: user.phone_number,
         });
         console.log(message.sid);
@@ -203,7 +220,7 @@ app.post('/api/respond-to-request', async (req, res) => {
       if (requestor && requestor.phone_number) {
         const message = await twilioClient.messages.create({
           body: `Your meeting request for ${startDateTime} - ${endDateTime} has been accepted!`,
-          from: 'YOUR_TWILIO_PHONE_NUMBER',
+          from: '+14146221997',
           to: requestor.phone_number,
         });
         console.log(message.sid);

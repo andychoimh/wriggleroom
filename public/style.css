@@ -1,17 +1,94 @@
 body {
-    font-family: sans-serif;
-    /* Use IMDA's primary color */
-    background-color: #f2f2f2; 
-}
+    font-family: 'Roboto', sans-serif;
+    background-image: url(https://www.decorilla.com/online-decorating/wp-content/uploads/2023/10/Contemporary-executive-office-by-Decorilla-1.jpg);
+    background-size: cover;
+    background-repeat: no-repeat;
+    backdrop-filter: blur(10px);
+  }
+  
+  .container {
+    max-width: 80%;
+    min-width: 350px;
+    margin: 50px auto;
+    padding: 30px;
+    background-color: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  }
+  
+  h1 {
+    color: #006699; /* IMDA's secondary color */
+    margin-bottom: 20px;
+  }
+  
+  /* Form styling */
+  .form-group {
+    margin-bottom: 15px;
+  }
+  
+  label {
+    font-weight: bold;
+  }
+  
+  /* Use Cirrus UI classes for input fields */
+  input[type="date"],
+  input[type="time"],
+  input[type="number"],
+  input[type="text"] {
+    border: 1px solid #ccc;
+    padding: 10px;
+    border-radius: 4px; /* Add rounded corners */
+    width: 100%; /* Make input fields fill the width */
+  }
+  
+  /* Style buttons using Cirrus UI classes */
+  .btn {
+    padding: 10px 20px;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  
+  .btn-primary {
+    background-color: #006699; /* IMDA's secondary color */
+    color: #fff;
+    border: none;
+  }
+  
+  .btn-primary:hover {
+    background-color: #00527d; /* Darker shade on hover */
+  }
+  
+  /* Style lists */
+  ul {
+    list-style: none;
+    padding: 0;
+  }
+  
+  li {
+    margin-bottom: 10px;
+    padding: 10px;
+    border: 1px solid #eee;
+    border-radius: 4px;
+  }
 
-.container {
-    max-width: 800px;
-    margin: 0 auto;
-    padding: 20px;
-    background-color: #fff;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-}
+  #rooms-container {
+    display: none; /* Initially hide the container */
+    /* ... other styles for the container ... */
+  }
 
-h1 {
-    color: #006699; /* Use IMDA's secondary color */
-}
+  #available-rooms li,
+  
+  #booked-rooms li {
+  display: flex; /* Use flexbox for layout */
+  align-items: center; /* Vertically align items */
+  margin-bottom: 10px;
+  padding: 10px;
+  border: 1px solid #eee;
+  border-radius: 4px;
+  } 
+
+  #available-rooms li strong,
+  #booked-rooms li strong {
+    flex: 1; /* Distribute available space equally among columns */
+    margin-right: 10px; /* Add spacing between columns */
+  }

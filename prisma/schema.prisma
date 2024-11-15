@@ -14,11 +14,20 @@ datasource db {
 }
 
 model meeting_rooms {
-  room_id       Int      @id @default(autoincrement())
-  room_name     String
+  room_id  Int      @id @default(autoincrement())
+  room_name String
+  capacity Int
+  location String?
+  bookings bookings[]
+}
+
+model bookings {
+  booking_id    Int      @id @default(autoincrement())
+  room_id       Int
   booked_by     String?
-  booking_start DateTime?
-  booking_end   DateTime?
+  booking_start DateTime
+  booking_end   DateTime
+  meeting_room  meeting_rooms @relation(fields: [room_id], references: [room_id])
 }
 
 model users {
@@ -26,4 +35,14 @@ model users {
   user_name            String  @unique
   appreciate_you_points Int     @default(0)
   activity_points      Int     @default(0)
+  phone_number         String?
+}
+
+model broadcast_requests {
+  request_id  Int      @id @default(autoincrement())
+  requestor_id Int
+  room_name   String
+  start_time  DateTime
+  end_time    DateTime
+  attendees   Int
 }

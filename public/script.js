@@ -1,4 +1,5 @@
 const meetingRequestForm = document.getElementById('meeting-request-form');
+const roomsContainer = document.getElementById('rooms-container'); // Get the rooms container element
 
 const userNameInput = document.getElementById('user-name');
 const submitNameButton = document.getElementById('submit-name');
@@ -30,6 +31,9 @@ submitNameButton.addEventListener('click', async () => {
     console.error('Error fetching user ID:', error);
     // Handle error (e.g., display an error message)
   }
+  
+  // Show the meeting request form after name submission
+  meetingRequestForm.style.display = 'block'; 
 });
 
 meetingRequestForm.addEventListener('submit', async (event) => {
@@ -56,28 +60,76 @@ meetingRequestForm.addEventListener('submit', async (event) => {
     console.log(data);   
  // Log the response from the API
 
-
-    // Display available rooms
+  // Display available rooms
   const availableRoomsList = document.getElementById('available-rooms');
-  availableRoomsList.innerHTML = ''; // Clear previous results
-  data.availableRooms.forEach(room => {
-    const listItem = document.createElement('li');
-    listItem.textContent = room.room_name;
-    availableRoomsList.appendChild(listItem);
-  });
+  const availableRoomsHeading = document.querySelector('#rooms-container h2:first-of-type'); // Select the "Available Rooms" heading
+  availableRoomsList.innerHTML = '';
+  if (data.availableRooms.length > 0) {
+    // Add header row
+    const headerRow = document.createElement('li');
+    headerRow.innerHTML = `
+      <strong>Room Name</strong>
+      <strong>Location</strong>
+      <strong>Capacity</strong>
+    `;
+    availableRoomsList.appendChild(headerRow);
+
+    data.availableRooms.forEach(room => {
+      const listItem = document.createElement('li');
+      listItem.innerHTML = `
+        ${room.room_name}
+        ${room.location}
+        ${room.capacity}
+      `;
+      availableRoomsList.appendChild(listItem);
+    });
+  } else {
+    availableRoomsHeading.style.display = 'none'; // Hide the heading if no available rooms
+  }
 
   // Display booked rooms
   const bookedRoomsList = document.getElementById('booked-rooms');
-  bookedRoomsList.innerHTML = ''; // Clear previous results
-  data.bookedRooms.forEach(room => {
-    const listItem = document.createElement('li');
-    listItem.textContent = room.room_name;
-    bookedRoomsList.appendChild(listItem);
-  });
+  const bookedRoomsHeading = document.querySelector('#rooms-container h2:last-of-type'); // Select the "Booked Rooms" heading
+  bookedRoomsList.innerHTML = '';
+  if (data.bookedRooms.length > 0) {
+    // Add header row
+    const headerRow = document.createElement('li');
+    headerRow.innerHTML = `
+      <strong>Room Name</strong>
+      <strong>Location</strong>
+      <strong>Booked By</strong>
+      <strong>Booking Start</strong>
+      <strong>Booking End</strong>
+    `;
+    bookedRoomsList.appendChild(headerRow);
 
+    data.bookedRooms.forEach(booking => { // Iterate over data.bookedRooms, not data.meeting_rooms
+      const listItem = document.createElement('li');
+      listItem.innerHTML = `
+        ${booking.meeting_room.room_name} 
+        ${booking.meeting_room.location} 
+        ${booking.booked_by || ''}  
+        ${new Date(booking.booking_start).toLocaleString()} 
+        ${new Date(booking.booking_end).toLocaleString()} 
+      `;
+      bookedRoomsList.appendChild(listItem);
+    });
+  } else {
+    bookedRoomsHeading.style.display = 'none'; // Hide the heading if no booked rooms
+  }
+    
   if (data.availableRooms.length === 0) {
-    const broadcast = confirm('None of the suitable rooms are available. Would you like to broadcast a request?');
-    if (broadcast) {
+    // No available rooms, show the broadcast request option
+    const broadcastRequestOption = document.createElement('div');
+    broadcastRequestOption.innerHTML = `
+      <p>No rooms available for your request.</p>
+      <button id="broadcast-request-button" class="btn btn-primary">Broadcast Request</button>
+    `;
+    roomsContainer.appendChild(broadcastRequestOption);
+  
+    // Add event listener to the broadcast request button
+    const broadcastRequestButton = document.getElementById('broadcast-request-button');
+    broadcastRequestButton.addEventListener('click', async () => {
       try {
         // Gather request data (including requestorId from sessionStorage)
         const requestorId = sessionStorage.getItem('requestorId');
@@ -109,11 +161,10 @@ meetingRequestForm.addEventListener('submit', async (event) => {
         console.error('Error broadcasting request:', error);
         alert('There was an error broadcasting your request.');
       }
-    }}
-  
+    });
+  }
       console.log('Broadcasting request...');
-    }
-  
+  }
 
    catch (error) {
     console.error('Error fetching rooms:', error);
