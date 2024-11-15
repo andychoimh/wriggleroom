@@ -77,18 +77,22 @@ body {
   }
 
   #available-rooms li,
-  
   #booked-rooms li {
-  display: flex; /* Use flexbox for layout */
-  align-items: center; /* Vertically align items */
-  margin-bottom: 10px;
-  padding: 10px;
-  border: 1px solid #eee;
-  border-radius: 4px;
-  } 
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    padding: 10px;
+    border: 1px solid #eee;
+    border-radius: 4px;
+  }
 
   #available-rooms li strong,
   #booked-rooms li strong {
-    flex: 1; /* Distribute available space equally among columns */
-    margin-right: 10px; /* Add spacing between columns */
+    flex: 1; /* Distribute space equally */
+    margin-right: 10px;
+  }
+
+  #available-rooms li > *, /* Target direct children of li */
+  #booked-rooms li > * {  /* Target direct children of li */
+    flex: 1; /* Distribute space equally to all elements within li */
   }

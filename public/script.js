@@ -76,10 +76,11 @@ meetingRequestForm.addEventListener('submit', async (event) => {
 
     data.availableRooms.forEach(room => {
       const listItem = document.createElement('li');
+      listItem.classList.add('flex-container'); // Add flex-container class to each list item
       listItem.innerHTML = `
-        ${room.room_name}
-        ${room.location}
-        ${room.capacity}
+        <span>${room.room_name}</span> 
+        <span>${room.location}</span> 
+        <span>${room.capacity}</span> 
       `;
       availableRoomsList.appendChild(listItem);
     });
@@ -105,13 +106,18 @@ meetingRequestForm.addEventListener('submit', async (event) => {
 
     data.bookedRooms.forEach(booking => { // Iterate over data.bookedRooms, not data.meeting_rooms
       const listItem = document.createElement('li');
+      listItem.classList.add('flex-container'); // Add flex-container class to each list item
+      
+      const bookingStart = new Date(booking.booking_start); // Create a new Date object for start time
+      const bookingEnd = new Date(booking.booking_end); // Create a new Date object for end time
+
       listItem.innerHTML = `
-        ${booking.meeting_room.room_name} 
-        ${booking.meeting_room.location} 
-        ${booking.booked_by || ''}  
-        ${new Date(booking.booking_start).toLocaleString()} 
-        ${new Date(booking.booking_end).toLocaleString()} 
-      `;
+        <span>${booking.meeting_room.room_name}</span> 
+        <span>${booking.meeting_room.location}</span> 
+        <span>${booking.booked_by || ''}</span> 
+        <span>${new Date(booking.booking_start).toLocaleString('en-SG', { timeZone: 'UTC', hour12: false })}</span> 
+        <span>${new Date(booking.booking_end).toLocaleString('en-SG', { timeZone: 'UTC', hour12: false })}</span> 
+        `;
       bookedRoomsList.appendChild(listItem);
     });
   } else {

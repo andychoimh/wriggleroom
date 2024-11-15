@@ -66,7 +66,7 @@ fetch(`/api/get-requests?userName=${userName}`)
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ requestId, decision: 'reject', userName }),
+            body: JSON.stringify({ requestId, decision: 'accept', userName }),
           });
 
           if (response.ok) {

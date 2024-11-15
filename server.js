@@ -107,10 +107,15 @@ app.post('/api/find-rooms', async (req, res) => {
     });
 
     // 5. Send the response
-    res.json({ 
-      availableRooms: trulyAvailableRooms, 
-      bookedRooms: roomsWithBookings 
+    res.json({
+      availableRooms: trulyAvailableRooms,
+      bookedRooms: roomsWithBookings.map(booking => ({
+        ...booking,
+        booking_start: new Date(booking.booking_start), // Convert to Date object
+        booking_end: new Date(booking.booking_end) // Convert to Date object
+      }))
     });
+    
   } catch (error) {
     console.error(error);
     res.status(500).send('Error fetching rooms.');
@@ -118,13 +123,12 @@ app.post('/api/find-rooms', async (req, res) => {
 });
 
 app.post('/api/broadcast-request', async (req, res) => {
-  const { startDate, startTime, endTime, attendees, requestor } = req.body;
+  const { startDate, startTime, endTime, attendees } = req.body;
 
   try {
     // 1. Convert startDate and times to Date objects
     const startDateTime = new Date(`${startDate}T${startTime}`);
     const endDateTime = new Date(`${startDate}T${endTime}`);
-    const requestorId = sessionStorage.getItem('requestorId');
 
     // 2. Find potential Booking Owners
     const potentialOwners = await prisma.meeting_rooms.findMany({
@@ -140,7 +144,7 @@ app.post('/api/broadcast-request', async (req, res) => {
     });
 
     // Store the broadcast request
-    await prisma.broadcast_requests.create({
+    const createdRequest = await prisma.broadcast_requests.create({
       data: {
         requestor_id: requestorId,
         room_name: potentialOwners[0].room_name, // Assuming all potential owners have the same room name
@@ -149,6 +153,8 @@ app.post('/api/broadcast-request', async (req, res) => {
         attendees: attendees,
       },
     });
+
+    const requestId = createdRequest.request_id; // Get the generated request_id
 
     // 3. Send SMS notifications to Booking Owners
   // We'll fetch the phone number from the 'users' table
@@ -160,7 +166,7 @@ app.post('/api/broadcast-request', async (req, res) => {
       });
 
       if (user && user.phone_number) {
-        const requestsUrl = `https://wriggleroom.work/requests.html?userName=${user.user_name}`; // Generate URL with userName
+        const requestsUrl = `https://wriggleroom.work/requests.html?userName=<span class="math-inline">\{user\.user\_name\}&requestId\=</span>{requestId}`; // Include requestId in the URL
         const message = await twilioClient.messages.create({
           body: `Someone is requesting request for ${owner.room_name} on ${startDate}, ${startTime} - ${endTime}. Do view request, click here ${requestsUrl}`,
           from: '+14146221997',
@@ -177,10 +183,7 @@ app.post('/api/broadcast-request', async (req, res) => {
   }
 
     // 4. Store request details (simplified)
-    // In a real-world app, you'd store this in a separate table
-    console.log(
-      `Storing request details: ${requestor} requests ${startDate}, ${startTime} - ${endTime}`
-    );
+
 
     res.send('Request broadcasted successfully.');
   } catch (error) {
@@ -190,7 +193,7 @@ app.post('/api/broadcast-request', async (req, res) => {
 });
 
 app.post('/api/respond-to-request', async (req, res) => {
-  const { requestId, decision, bookingOwnerId, requestorId, startDateTime, endDateTime } = req.body;
+  const { requestId, decision, userName } = req.body;
 
   try {
     if (decision === 'accept') {
