@@ -123,7 +123,7 @@ app.post('/api/find-rooms', async (req, res) => {
 });
 
 app.post('/api/broadcast-request', async (req, res) => {
-  const { startDate, startTime, endTime, attendees } = req.body;
+  const { startDate, startTime, endTime, attendees, requestorId } = req.body;
 
   try {
     // 1. Convert startDate and times to Date objects
@@ -131,7 +131,7 @@ app.post('/api/broadcast-request', async (req, res) => {
     const endDateTime = new Date(`${startDate}T${endTime}`);
 
     // 2. Find potential Booking Owners
-    const potentialOwners = await prisma.meeting_rooms.findMany({
+    const potentialOwners = await prisma.bookings.findMany({
       where: {
         NOT: {
           OR: [
@@ -140,17 +140,24 @@ app.post('/api/broadcast-request', async (req, res) => {
           ],
         },
       },
-      select: { booked_by: true, room_name: true }, // Only select the 'booked_by' field
+      select: {
+        booked_by: true,
+        meeting_room: {
+          select: {
+            room_name: true
+          }
+        }
+      },
     });
 
     // Store the broadcast request
     const createdRequest = await prisma.broadcast_requests.create({
       data: {
-        requestor_id: requestorId,
-        room_name: potentialOwners[0].room_name, // Assuming all potential owners have the same room name
+        requestor_id: parseInt(requestorId),
+        room_name: potentialOwners[0].meeting_room.room_name, // Access room_name through meeting_room
         start_time: startDateTime,
         end_time: endDateTime,
-        attendees: attendees,
+        attendees: parseInt(attendees),
       },
     });
 
