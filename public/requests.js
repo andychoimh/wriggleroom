@@ -49,7 +49,7 @@ fetch(`/api/get-requests?userName=${userName}&requestId=${requestId}`) // Includ
 
           if (response.ok) {
             // Request accepted successfully
-            alert('Request accepted!');
+            alert('You have accepted this request! You have been awarded an Appreciate You point! Visit wriggleroom.work/leaderboard.html');
             // TODO: Update the UI to reflect the accepted request
           } else {
             // Handle error

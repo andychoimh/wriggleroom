@@ -161,12 +161,12 @@ app.post('/api/broadcast-request', async (req, res) => {
 
           if (user && user.phone_number) {
             const requestsUrl = `https://wriggleroom.work/requests.html?userName=${user.user_name}&requestId=${requestId}`;
-            //const message = await twilioClient.messages.create({
-            //  body: `Someone is requesting a room you have booked on ${startDate}, ${startTime} - ${endTime}. To view request, click here ${requestsUrl}`,
-            //  from: '+14146221997',
-            //  to: user.phone_number,
-            //});
-            //console.log(message.sid);
+            const message = await twilioClient.messages.create({
+              body: `Someone is requesting a room you have booked on ${startDate}, ${startTime} - ${endTime}. To view request, click here ${requestsUrl}`,
+              from: '+14146221997',
+              to: user.phone_number,
+            });
+            console.log(message.sid);
             console.log(user.user_name)
             notifiedUsers.add(booking.booked_by); // Add the user to the notified set
 
@@ -309,7 +309,7 @@ app.post('/api/respond-to-request', async (req, res) => {
 
         if (requestor && requestor.phone_number) {
           const message = await twilioClient.messages.create({
-            body: `Your meeting request for ${request.start_time.toLocaleString()} - ${request.end_time.toLocaleString()} has been accepted!`,
+            body: `Your meeting request for ${request.start_time.toLocaleString()} - ${request.end_time.toLocaleString()} has been accepted by ${userName}. Your Activity Points have increased! Visit wriggleroom.work/leaderboard.html to see if you're at the top!`,
             from: '+14146221997',
             to: requestor.phone_number,
           });
