@@ -16,11 +16,11 @@ fetch(`/api/get-requests?userName=${userName}&requestId=${requestId}`)
     data.forEach(request => {
       const requestItem = document.createElement('div');
       requestItem.innerHTML = `
-        <h3>Request for ${request.room_name}</h3>
-        <p>Date: ${new Date(request.start_time).toDateString()}</p>
-        <p>Time: ${new Date(request.start_time).toLocaleTimeString()} - ${new Date(request.end_time).toLocaleTimeString()}</p>
-        <button class="accept-request btn btn-success" data-request-id="${request.request_id}">Accept</button>
-        <button class="reject-request btn btn-danger" data-request-id="${request.request_id}">Reject</button>
+        <h3>Request for ${booking.meeting_room.room_name}</h3> 
+        <p>Date: ${new Date(booking.booking_start).toDateString()}</p> 
+        <p>Time: ${new Date(booking.booking_start).toLocaleTimeString()} - ${new Date(booking.booking_end).toLocaleTimeString()}</p> 
+        <button class="accept-request btn btn-success" data-request-id="${requestId}">Accept</button> 
+        <button class="reject-request btn btn-danger" data-request-id="${requestId}">Reject</button> 
       `;
       requestsList.appendChild(requestItem);
     });
