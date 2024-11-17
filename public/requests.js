@@ -7,7 +7,7 @@ const requestId = urlParams.get('requestId');
 console.log(userName, requestId)
 
 // Fetch requests from the backend
-fetch(`/api/get-requests?userName=${userName}&requestId=${requestId}`)
+fetch(`/api/get-requests?userName=${userName}&requestId=${requestId}`) // Include requestId in the URL
   .then(response => response.json())
   .then(data => {
     // Display the requests
