@@ -13,7 +13,7 @@ fetch(`/api/get-requests?userName=${userName}&requestId=${requestId}`) // Includ
     // Display the requests
     requestsList.innerHTML = ''; // Clear previous requests
 
-    data.forEach(request => {
+    data.forEach(booking => {
       const requestItem = document.createElement('div');
       requestItem.innerHTML = `
         <h3>Request for ${booking.meeting_room.room_name}</h3> 
