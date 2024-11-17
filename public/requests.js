@@ -18,7 +18,7 @@ fetch(`/api/get-requests?userName=${userName}&requestId=${requestId}`) // Includ
       requestItem.innerHTML = `
         <h3>Request for ${booking.meeting_room.room_name}</h3> 
         <p>Date: ${new Date(booking.booking_start).toDateString()}</p> 
-        <p>Time: ${new Date(booking.booking_start).toLocaleTimeString()} - ${new Date(booking.booking_end).toLocaleTimeString()}</p> 
+        <p>Time: ${new Date(booking.booking_start).toLocaleTimeString('en-SG', { timeZone: 'UTC', hour12: false })} - ${new Date(booking.booking_end).toLocaleTimeString('en-SG', { timeZone: 'UTC', hour12: false })}</p> 
         <button class="accept-request btn btn-success" data-request-id="${requestId}">Accept</button> 
         <button class="reject-request btn btn-danger" data-request-id="${requestId}">Reject</button> 
       `;
