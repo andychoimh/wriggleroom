@@ -130,6 +130,8 @@ app.post('/api/broadcast-request', async (req, res) => {
     const startDateTime = new Date(`${startDate}T${startTime}`);
     const endDateTime = new Date(`${startDate}T${endTime}`);
 
+    // No need to fetch bookings here, use the bookedRooms from the request body
+
     // Store the broadcast request
     if (bookedRooms.length > 0) {
       const createdRequest = await prisma.broadcast_requests.create({
@@ -158,15 +160,14 @@ app.post('/api/broadcast-request', async (req, res) => {
           });
 
           if (user && user.phone_number) {
-            const requestsUrl = `https://wriggleroom.work/requests.html?requestId=${requestId}`;
-            const message = await twilioClient.messages.create({
-              body: `Someone is requesting ${booking.meeting_room.room_name} on ${startDate}, ${startTime} - ${endTime}. Do view request, click here ${requestsUrl}`,
-              from: '+14146221997',
-              to: user.phone_number,
-            });
-            console.log(message.sid);
+            const requestsUrl = `https://wriggleroom.work/requests.html?userName=${user.user_name}&requestId=${requestId}`;
+            //const message = await twilioClient.messages.create({
+            //  body: `Someone is requesting a room you have booked on ${startDate}, ${startTime} - ${endTime}. To view request, click here ${requestsUrl}`,
+            //  from: '+14146221997',
+            //  to: user.phone_number,
+            //});
+            //console.log(message.sid);
             console.log(user.user_name)
-            console.log(requestsUrl)
             notifiedUsers.add(booking.booked_by); // Add the user to the notified set
 
           } else {
@@ -270,27 +271,34 @@ app.get('/api/leaderboard', async (req, res) => {
 
 app.get('/api/get-requests', async (req, res) => {
   const userName = req.query.userName;
+  const requestId = parseInt(req.query.requestId);
 
   try {
-    // Fetch the Booking Owner's bookings
-    const bookings = await prisma.meeting_rooms.findMany({
-      where: { booked_by: userName },
+    // 1. Fetch the request details
+    const request = await prisma.broadcast_requests.findUnique({
+      where: { request_id: requestId },
     });
 
-    const requests = [];
-    for (const booking of bookings) {
-      // Fetch broadcast requests matching the booking
-      const matchingRequests = await prisma.broadcast_requests.findMany({
-        where: {
-          room_name: booking.room_name,
-          start_time: { lte: booking.booking_end },
-          end_time: { gte: booking.booking_start },
-        },
-      });
-      requests.push(...matchingRequests);
+    if (!request) {
+      return res.status(404).send('Request not found.');
     }
 
-    res.json(requests);
+    // 2. Fetch the Booking Owner's bookings that match the request criteria
+    const bookings = await prisma.bookings.findMany({
+      where: {
+        booked_by: userName,
+        booking_start: { lte: request.start_time },
+        booking_end: { gte: request.end_time },
+        meeting_room: {
+          capacity: { gte: request.attendees }
+        }
+      },
+      include: {
+        meeting_room: true,
+      }
+    });
+
+    res.json(bookings);
   } catch (error) {
     console.error('Error fetching requests:', error);
     res.status(500).send('Error fetching requests.');
