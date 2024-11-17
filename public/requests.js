@@ -34,12 +34,20 @@ fetch(`/api/get-requests?userName=${userName}&requestId=${requestId}`) // Includ
         const requestId = button.dataset.requestId;
 
         try {
+          // Fetch the requestorId from the broadcast_requests table
+          const request = await prisma.broadcast_requests.findUnique({
+            where: { request_id: parseInt(requestId) },
+            select: { requestor_id: true }
+          });
+
+          const requestorId = request.requestor_id;
+
           const response = await fetch('/api/respond-to-request', {
             method: 'POST', 
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ requestId, decision: 'accept', userName }),
+            body: JSON.stringify({ requestId, decision: 'accept', userName, requestorId }),
           });
 
           if (response.ok) {
@@ -63,12 +71,20 @@ fetch(`/api/get-requests?userName=${userName}&requestId=${requestId}`) // Includ
         const requestId = button.dataset.requestId;
 
         try {
+          // Fetch the requestorId from the broadcast_requests table
+          const request = await prisma.broadcast_requests.findUnique({
+            where: { request_id: parseInt(requestId) },
+            select: { requestor_id: true }
+          });
+
+          const requestorId = request.requestor_id;
+         
           const response = await fetch('/api/respond-to-request', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify({ requestId, decision: 'accept', userName }),
+            body: JSON.stringify({ requestId, decision: 'accept', userName, requestorId }),
           });
 
           if (response.ok) {
