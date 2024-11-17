@@ -96,3 +96,32 @@ body {
   #booked-rooms li > * {  /* Target direct children of li */
     flex: 1; /* Distribute space equally to all elements within li */
   }
+
+  /* In public/style.css */
+
+.header {
+  background-color: transparent; /* Make the header transparent */
+  color: #006699; /* Use IMDA's secondary color for text */
+  border-bottom: none; /* Remove the default border */
+  padding: 20px 0; /* Add some padding */
+}
+
+.header-brand .title {
+  font-size: 2rem; /* Increase font size */
+  font-weight: bold;
+}
+
+.header-nav .nav-link,
+.header-nav .nav-dropdown-link {
+  color: #006699; /* Use IMDA's secondary color for links */
+  font-weight: bold; /* Make links bold */
+}
+
+.header-nav .nav-link:hover,
+.header-nav .nav-dropdown-link:hover {
+  text-decoration: underline; /* Add underline on hover */
+}
+
+.header-nav .nav-item {
+  margin-left: 30px; /* Add spacing between menu items */
+}
