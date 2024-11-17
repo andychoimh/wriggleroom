@@ -123,76 +123,67 @@ app.post('/api/find-rooms', async (req, res) => {
 });
 
 app.post('/api/broadcast-request', async (req, res) => {
-  const { startDate, startTime, endTime, attendees, requestorId } = req.body;
+  const { startDate, startTime, endTime, attendees, requestorId, bookedRooms } = req.body;
 
   try {
     // 1. Convert startDate and times to Date objects
     const startDateTime = new Date(`${startDate}T${startTime}`);
     const endDateTime = new Date(`${startDate}T${endTime}`);
 
-    // 2. Find potential Booking Owners
-    const potentialOwners = await prisma.bookings.findMany({
-      where: {
-        NOT: {
-          OR: [
-            { booking_start: { gte: endDateTime } },
-            { booking_end: { lte: startDateTime } },
-          ],
-        },
-      },
-      select: {
-        booked_by: true,
-        meeting_room: {
-          select: {
-            room_name: true
-          }
-        }
-      },
-    });
+    // No need to fetch bookings here, use the bookedRooms from the request body
 
     // Store the broadcast request
-    const createdRequest = await prisma.broadcast_requests.create({
-      data: {
-        requestor_id: parseInt(requestorId),
-        room_name: potentialOwners[0].meeting_room.room_name, // Access room_name through meeting_room
-        start_time: startDateTime,
-        end_time: endDateTime,
-        attendees: parseInt(attendees),
-      },
-    });
-
-    const requestId = createdRequest.request_id; // Get the generated request_id
-
-    // 3. Send SMS notifications to Booking Owners
-  // We'll fetch the phone number from the 'users' table
-  for (const owner of potentialOwners) { // Use a for...of loop for async operations
-    try {
-      const user = await prisma.users.findUnique({ 
-        where: { user_name: owner.booked_by },
-        select: { phone_number: true } 
+    if (bookedRooms.length > 0) {
+      const createdRequest = await prisma.broadcast_requests.create({
+        data: {
+          requestor_id: parseInt(requestorId),
+          room_name: bookedRooms[0].meeting_room.room_name, // Access room_name through meeting_room
+          start_time: startDateTime,
+          end_time: endDateTime,
+          attendees: parseInt(attendees),
+        },
       });
 
-      if (user && user.phone_number) {
-        const requestsUrl = `https://wriggleroom.work/requests.html?userName=<span class="math-inline">\{user\.user\_name\}&requestId\=</span>{requestId}`; // Include requestId in the URL
-        const message = await twilioClient.messages.create({
-          body: `Someone is requesting request for ${owner.room_name} on ${startDate}, ${startTime} - ${endTime}. Do view request, click here ${requestsUrl}`,
-          from: '+14146221997',
-          to: user.phone_number,
-        });
-        console.log(message.sid);
-      } else {
-        console.warn(`Unable to send SMS to ${owner.booked_by}: Phone number not found.`);
+      const requestId = createdRequest.request_id; // Get the generated request_id
+
+      // Send SMS notifications to Booking Owners
+      const notifiedUsers = new Set(); // Keep track of notified users
+      for (const booking of bookedRooms) { // Use a for...of loop for async operations
+        if (notifiedUsers.has(booking.booked_by)) {
+          continue; // Skip if this user has already been notified
+        }  
+        
+        try {
+          const user = await prisma.users.findUnique({
+            where: { user_name: booking.booked_by },
+            select: { phone_number: true, user_name: true } 
+          });
+
+          if (user && user.phone_number) {
+            const requestsUrl = `https://wriggleroom.work/requests.html?userName=${user.user_name}&requestId=${requestId}`;
+            //const message = await twilioClient.messages.create({
+            //  body: `Someone is requesting ${booking.meeting_room.room_name} on ${startDate}, ${startTime} - ${endTime}. Do view request, click here ${requestsUrl}`,
+            //  from: '+14146221997',
+            //  to: user.phone_number,
+            //});
+            //console.log(message.sid);
+            console.log(user.user_name)
+            console.log(requestsUrl)
+            notifiedUsers.add(booking.booked_by); // Add the user to the notified set
+
+          } else {
+            console.warn(`Unable to send SMS to ${booking.booked_by}: Phone number not found.`);
+          }
+        } catch (error) {
+          console.error('Error sending SMS:', error);
+        }
       }
 
-    } catch (error) {
-      console.error('Error sending SMS:', error);
+      res.send('Your request has been broadcasted to booking owners.');
+    } else {
+      console.error('No overlapping bookings found for this request.');
+      res.status(400).send('No overlapping bookings found.'); // Send a 400 Bad Request response
     }
-  }
-
-    // 4. Store request details (simplified)
-
-
-    res.send('Request broadcasted successfully.');
   } catch (error) {
     console.error(error);
     res.status(500).send('Error broadcasting request.');

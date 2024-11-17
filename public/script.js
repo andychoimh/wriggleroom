@@ -55,6 +55,9 @@ meetingRequestForm.addEventListener('submit', async (event) => {
     });
 
     const data = await response.json();
+    // Store bookedRooms and availableRooms in sessionStorage
+    sessionStorage.setItem('bookedRooms', JSON.stringify(data.bookedRooms));
+    sessionStorage.setItem('availableRooms', JSON.stringify(data.availableRooms));
     const roomsContainer = document.getElementById('rooms-container');
     roomsContainer.style.display = 'block'; // Or 'flex', or whatever display you prefer
     console.log(data);   
@@ -139,20 +142,22 @@ meetingRequestForm.addEventListener('submit', async (event) => {
       try {
         // Gather request data (including requestorId from sessionStorage)
         const requestorId = sessionStorage.getItem('requestorId');
+        const bookedRooms = JSON.parse(sessionStorage.getItem('bookedRooms'));
         const requestData = {
           startDate: document.getElementById('start-date').value,
           startTime: document.getElementById('start-time').value,
           endTime: document.getElementById('end-time').value,
           attendees: document.getElementById('attendees').value,
-          requestorId: requestorId, // Include requestorId
+          requestorId: requestorId,
+          bookedRooms: bookedRooms, // Include bookedRooms in the request body
         };
-
+        
         const response = await fetch('/api/broadcast-request', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify(requestData),
+          body: JSON.stringify(requestData), // Send requestData in the request body
         });
 
         if (response.ok) {
