@@ -352,3 +352,19 @@ app.post('/api/respond-to-request', async (req, res) => {
     res.status(500).send('Error responding to request.');
   }
 });
+
+app.get('/api/get-requestor-id', async (req, res) => {
+  const requestId = parseInt(req.query.requestId);
+
+  try {
+    const request = await prisma.broadcast_requests.findUnique({
+      where: { request_id: requestId },
+      select: { requestor_id: true }
+    });
+
+    res.json({ requestorId: request.requestor_id });
+  } catch (error) {
+    console.error('Error fetching requestor ID:', error);
+    res.status(500).send('Error fetching requestor ID.');
+  }
+});

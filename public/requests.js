@@ -34,13 +34,10 @@ fetch(`/api/get-requests?userName=${userName}&requestId=${requestId}`) // Includ
         const requestId = button.dataset.requestId;
 
         try {
-          // Fetch the requestorId from the broadcast_requests table
-          const request = await prisma.broadcast_requests.findUnique({
-            where: { request_id: parseInt(requestId) },
-            select: { requestor_id: true }
-          });
-
-          const requestorId = request.requestor_id;
+          // Fetch the requestorId from the backend
+          const requestorResponse = await fetch(`/api/get-requestor-id?requestId=${requestId}`); // Renamed response to requestorResponse
+          const data = await requestorResponse.json();
+          const requestorId = data.requestorId;
 
           const response = await fetch('/api/respond-to-request', {
             method: 'POST', 
@@ -71,13 +68,10 @@ fetch(`/api/get-requests?userName=${userName}&requestId=${requestId}`) // Includ
         const requestId = button.dataset.requestId;
 
         try {
-          // Fetch the requestorId from the broadcast_requests table
-          const request = await prisma.broadcast_requests.findUnique({
-            where: { request_id: parseInt(requestId) },
-            select: { requestor_id: true }
-          });
-
-          const requestorId = request.requestor_id;
+          // Fetch the requestorId from the backend
+            const requestorResponse = await fetch(`/api/get-requestor-id?requestId=${requestId}`); // Renamed response to requestorResponse
+            const data = await requestorResponse.json();
+            const requestorId = data.requestorId;
          
           const response = await fetch('/api/respond-to-request', {
             method: 'POST',
