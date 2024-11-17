@@ -190,7 +190,7 @@ app.post('/api/broadcast-request', async (req, res) => {
 });
 
 app.post('/api/respond-to-request', async (req, res) => {
-  const { requestId, decision, userName } = req.body;
+  const { requestId, decision, userName, requestorId } = req.body;
 
   try {
     if (decision === 'accept') {
@@ -305,15 +305,16 @@ app.get('/api/get-requests', async (req, res) => {
   }
 });
 
+
 app.post('/api/respond-to-request', async (req, res) => {
-  const { requestId, decision, userName } = req.body; // Include userName
+  const { requestId, decision, userName, requestorId } = req.body;
 
   try {
     // 1. Fetch the request and related data
     const request = await prisma.broadcast_requests.findUnique({
-      where: { request_id: parseInt(requestId) }, // Assuming requestId is an integer
+      where: { request_id: parseInt(requestId) },
       include: {
-        requestor: { select: { user_name: true } }, // Include requestor's user_name
+        requestor: { select: { user_name: true } },
       },
     });
 
@@ -321,11 +322,12 @@ app.post('/api/respond-to-request', async (req, res) => {
       return res.status(404).send('Request not found.');
     }
 
-    // 2. Update the meeting room booking
+    // 2. Update the booking record in the bookings table
     if (decision === 'accept') {
-      // Update the meeting room booking in meeting_rooms table
-      // You'll need to implement the logic to find the corresponding booking and update it
-      // ...
+      await prisma.bookings.update({
+        where: { booking_id: parseInt(requestId) },
+        data: { booked_by: userName },
+      });
 
       // Update points for the Booking Owner and Requestor
       await prisma.users.update({
@@ -333,12 +335,26 @@ app.post('/api/respond-to-request', async (req, res) => {
         data: { appreciate_you_points: { increment: 1 } },
       });
       await prisma.users.update({
-        where: { user_name: request.requestor.user_name },
+        where: { user_id: requestorId },
         data: { activity_points: { increment: 1 } },
       });
 
       // Send confirmation SMS to the Requestor
-      // ...
+      const requestor = await prisma.users.findUnique({
+        where: { user_id: requestorId },
+        select: { phone_number: true },
+      });
+
+      if (requestor && requestor.phone_number) {
+        const message = await twilioClient.messages.create({
+          body: `Your meeting request for ${request.start_time.toLocaleString()} - ${request.end_time.toLocaleString()} has been accepted!`,
+          from: '+14146221997',
+          to: requestor.phone_number,
+        });
+        console.log(message.sid);
+      } else {
+        console.warn(`Unable to send SMS to ${requestorId}: Phone number not found.`);
+      }
     }
 
     // 3. Delete the broadcast request
