@@ -159,12 +159,12 @@ app.post('/api/broadcast-request', async (req, res) => {
 
           if (user && user.phone_number) {
             const requestsUrl = `https://wriggleroom.work/requests.html?requestId=${requestId}`;
-            //const message = await twilioClient.messages.create({
-            //  body: `Someone is requesting ${booking.meeting_room.room_name} on ${startDate}, ${startTime} - ${endTime}. Do view request, click here ${requestsUrl}`,
-            //  from: '+14146221997',
-            //  to: user.phone_number,
-            //});
-            //console.log(message.sid);
+            const message = await twilioClient.messages.create({
+              body: `Someone is requesting ${booking.meeting_room.room_name} on ${startDate}, ${startTime} - ${endTime}. Do view request, click here ${requestsUrl}`,
+              from: '+14146221997',
+              to: user.phone_number,
+            });
+            console.log(message.sid);
             console.log(user.user_name)
             console.log(requestsUrl)
             notifiedUsers.add(booking.booked_by); // Add the user to the notified set

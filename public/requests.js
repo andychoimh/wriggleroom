@@ -35,7 +35,7 @@ fetch(`/api/get-requests?userName=${userName}`)
 
         try {
           const response = await fetch('/api/respond-to-request', {
-            method: 'POST',
+            method: 'POST', 
             headers: {
               'Content-Type': 'application/json',
             },
