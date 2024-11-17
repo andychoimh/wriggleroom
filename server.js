@@ -130,8 +130,6 @@ app.post('/api/broadcast-request', async (req, res) => {
     const startDateTime = new Date(`${startDate}T${startTime}`);
     const endDateTime = new Date(`${startDate}T${endTime}`);
 
-    // No need to fetch bookings here, use the bookedRooms from the request body
-
     // Store the broadcast request
     if (bookedRooms.length > 0) {
       const createdRequest = await prisma.broadcast_requests.create({
@@ -160,7 +158,7 @@ app.post('/api/broadcast-request', async (req, res) => {
           });
 
           if (user && user.phone_number) {
-            const requestsUrl = `https://wriggleroom.work/requests.html?userName=${user.user_name}&requestId=${requestId}`;
+            const requestsUrl = `https://wriggleroom.work/requests.html?requestId=${requestId}`;
             //const message = await twilioClient.messages.create({
             //  body: `Someone is requesting ${booking.meeting_room.room_name} on ${startDate}, ${startTime} - ${endTime}. Do view request, click here ${requestsUrl}`,
             //  from: '+14146221997',

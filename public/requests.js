@@ -3,6 +3,8 @@ const requestsList = document.getElementById('requests-list');
 // Get userName from URL query parameters
 const urlParams = new URLSearchParams(window.location.search);
 const userName = urlParams.get('userName');
+const requestId = urlParams.get('requestId'); 
+
 
 // Fetch requests from the backend
 fetch(`/api/get-requests?userName=${userName}`)
