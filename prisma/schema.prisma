@@ -36,6 +36,7 @@ model users {
   appreciate_you_points Int     @default(0)
   activity_points      Int     @default(0)
   phone_number         String?
+  bookingRequests      broadcast_requests[]  @relation("Requests")
 }
 
 model broadcast_requests {
@@ -45,4 +46,5 @@ model broadcast_requests {
   start_time  DateTime
   end_time    DateTime
   attendees   Int
+  requestor    users    @relation("Requests", fields: [requestor_id], references: [user_id]) 
 }

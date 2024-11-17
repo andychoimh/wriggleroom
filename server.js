@@ -189,55 +189,6 @@ app.post('/api/broadcast-request', async (req, res) => {
   }
 });
 
-app.post('/api/respond-to-request', async (req, res) => {
-  const { requestId, decision, userName, requestorId } = req.body;
-
-  try {
-    if (decision === 'accept') {
-      // 1. Update meeting room booking
-      // (This is a simplified example, assuming you have the booking details)
-      await prisma.meeting_rooms.update({
-        where: { room_id: requestId }, // Assuming requestId corresponds to room_id
-        data: { booked_by: requestorId },
-      });
-
-      // 2. Update user points
-      await prisma.users.update({
-        where: { user_id: bookingOwnerId },
-        data: { appreciate_you_points: { increment: 1 } },
-      });
-      await prisma.users.update({
-        where: { user_id: requestorId },
-        data: { activity_points: { increment: 1 } },
-      });
-
-      // 3. Send confirmation SMS to requestor
-      const requestor = await prisma.users.findUnique({
-        where: { user_id: requestorId },
-        select: { phone_number: true },
-      });
-
-      if (requestor && requestor.phone_number) {
-        const message = await twilioClient.messages.create({
-          body: `Your meeting request for ${startDateTime} - ${endDateTime} has been accepted!`,
-          from: '+14146221997',
-          to: requestor.phone_number,
-        });
-        console.log(message.sid);
-      } else {
-        console.warn(`Unable to send SMS to ${requestorId}: Phone number not found.`);
-      }
-    } else {
-      // ... (send rejection notification logic)
-    }
-
-    res.send('Response processed successfully.');
-  } catch (error) {
-    console.error(error);
-    res.status(500).send('Error responding to request.');
-  }
-});
-
 app.get('/api/leaderboard', async (req, res) => {
   try {
     //const now = new Date();
@@ -314,7 +265,7 @@ app.post('/api/respond-to-request', async (req, res) => {
     const request = await prisma.broadcast_requests.findUnique({
       where: { request_id: parseInt(requestId) },
       include: {
-        requestor: { select: { user_name: true } },
+        requestor: { select: { user_name: true, user_id: true } }, // Include user_id
       },
     });
 
@@ -324,37 +275,53 @@ app.post('/api/respond-to-request', async (req, res) => {
 
     // 2. Update the booking record in the bookings table
     if (decision === 'accept') {
-      await prisma.bookings.update({
-        where: { booking_id: parseInt(requestId) },
-        data: { booked_by: userName },
+      // Find the booking to update
+      const bookingToUpdate = await prisma.bookings.findFirst({
+        where: {
+          booked_by: userName,
+          meeting_room: { room_name: request.room_name },
+          booking_start: { gte: request.start_time },
+          booking_end: { lte: request.end_time }
+        }
       });
 
-      // Update points for the Booking Owner and Requestor
-      await prisma.users.update({
-        where: { user_name: userName },
-        data: { appreciate_you_points: { increment: 1 } },
-      });
-      await prisma.users.update({
-        where: { user_id: requestorId },
-        data: { activity_points: { increment: 1 } },
-      });
-
-      // Send confirmation SMS to the Requestor
-      const requestor = await prisma.users.findUnique({
-        where: { user_id: requestorId },
-        select: { phone_number: true },
-      });
-
-      if (requestor && requestor.phone_number) {
-        const message = await twilioClient.messages.create({
-          body: `Your meeting request for ${request.start_time.toLocaleString()} - ${request.end_time.toLocaleString()} has been accepted!`,
-          from: '+14146221997',
-          to: requestor.phone_number,
+      if (bookingToUpdate) {
+        await prisma.bookings.update({
+          where: { booking_id: bookingToUpdate.booking_id },
+          data: { booked_by: request.requestor.user_name },
         });
-        console.log(message.sid);
+
+        // Update points for the Booking Owner and Requestor
+        await prisma.users.update({
+          where: { user_name: userName },
+          data: { appreciate_you_points: { increment: 1 } },
+        });
+        await prisma.users.update({
+          where: { user_id: request.requestor.user_id }, // Use request.requestor.user_id
+          data: { activity_points: { increment: 1 } },
+        });
+
+        // Send confirmation SMS to the Requestor
+        const requestor = await prisma.users.findUnique({
+          where: { user_id: requestorId },
+          select: { phone_number: true },
+        });
+
+        if (requestor && requestor.phone_number) {
+          const message = await twilioClient.messages.create({
+            body: `Your meeting request for ${request.start_time.toLocaleString()} - ${request.end_time.toLocaleString()} has been accepted!`,
+            from: '+14146221997',
+            to: requestor.phone_number,
+          });
+          console.log(message.sid);
+        } else {
+          console.warn(`Unable to send SMS to ${requestorId}: Phone number not found.`);
+        }
       } else {
-        console.warn(`Unable to send SMS to ${requestorId}: Phone number not found.`);
+        console.error('No matching booking found to update.');
       }
+    } else if (decision === 'reject') { // Add an else block for reject
+      // ... (logic to handle rejection, e.g., send a rejection notification)
     }
 
     // 3. Delete the broadcast request
