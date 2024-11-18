@@ -148,7 +148,7 @@ app.post('/api/broadcast-request', async (req, res) => {
 
       // Send SMS notifications to Booking Owners
       //const notifiedUsers = new Set(); // Keep track of notified users
-      //for (const booking of bookedRooms) { // Use a for...of loop for async operations
+      for (const booking of bookedRooms) { // Use a for...of loop for async operations
       //  if (notifiedUsers.has(booking.booked_by)) {
       //   continue; // Skip if this user has already been notified
       //}  
