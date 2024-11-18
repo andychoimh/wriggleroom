@@ -147,11 +147,11 @@ app.post('/api/broadcast-request', async (req, res) => {
       const requestId = createdRequest.request_id; // Get the generated request_id
 
       // Send SMS notifications to Booking Owners
-      const notifiedUsers = new Set(); // Keep track of notified users
-      for (const booking of bookedRooms) { // Use a for...of loop for async operations
-        if (notifiedUsers.has(booking.booked_by)) {
-          continue; // Skip if this user has already been notified
-        }  
+      //const notifiedUsers = new Set(); // Keep track of notified users
+      //for (const booking of bookedRooms) { // Use a for...of loop for async operations
+      //  if (notifiedUsers.has(booking.booked_by)) {
+      //   continue; // Skip if this user has already been notified
+      //}  
         
         try {
           const user = await prisma.users.findUnique({
