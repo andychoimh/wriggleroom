@@ -160,7 +160,7 @@ app.post('/api/broadcast-request', async (req, res) => {
           });
 
           if (user && user.phone_number) {
-            const requestsUrl = `https://wriggleroom.work/requests.html?userName=${user.user_name}&requestId=${requestId}`;
+            const requestsUrl = `https://wriggleroom.work/requests.html?userName=${encodeURIComponent(user.user_name)}&requestId=${requestId}`;
             const message = await twilioClient.messages.create({
               body: `Someone is requesting a room you have booked on ${startDate}, ${startTime} - ${endTime}. To view request, click here ${requestsUrl}`,
               from: '+14146221997',
