@@ -122,6 +122,43 @@ app.post('/api/find-rooms', async (req, res) => {
   }
 });
 
+app.post('/api/book-room', async (req, res) => {
+  const { roomId, userName, startDate, startTime, endTime } = req.body;
+
+  try {
+    const startDateTime = new Date(`${startDate}T${startTime}`);
+    const endDateTime = new Date(`${startDate}T${endTime}`);
+
+    // 1. Check if the room is already booked
+    const existingBooking = await prisma.bookings.findFirst({
+      where: {
+        room_id: parseInt(roomId),
+        booking_start: { lte: endDateTime },
+        booking_end: { gte: startDateTime },
+      },
+    });
+
+    if (existingBooking) {
+      return res.status(400).send('Room already booked for this time.');
+    }
+
+    // 2. Create a new booking
+    await prisma.bookings.create({
+      data: {
+        room_id: parseInt(roomId),
+        booked_by: userName,
+        booking_start: startDateTime,
+        booking_end: endDateTime,
+      },
+    });
+
+    res.send('Room booked successfully.');
+  } catch (error) {
+    console.error('Error booking room:', error);
+    res.status(500).send('Error booking room.');
+  }
+});
+
 app.post('/api/broadcast-request', async (req, res) => {
   const { startDate, startTime, endTime, attendees, requestorId, bookedRooms } = req.body;
 

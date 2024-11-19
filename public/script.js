@@ -84,9 +84,46 @@ meetingRequestForm.addEventListener('submit', async (event) => {
         <span>${room.room_name}</span> 
         <span>${room.location}</span> 
         <span>${room.capacity}</span> 
+        <button class="book-room btn btn-primary" data-room-id="${room.room_id}">Book Now</button> 
       `;
       availableRoomsList.appendChild(listItem);
     });
+    availableRoomsList.addEventListener('click', async (event) => {
+      if (event.target.classList.contains('book-room')) {
+        const roomId = event.target.dataset.roomId;
+        const userName = document.getElementById('user-name').value; // Get the user's name
+        const startDate = document.getElementById('start-date').value;
+        const startTime = document.getElementById('start-time').value;
+        const   
+     endTime = document.getElementById('end-time').value;   
+    
+    
+        try {
+          // Send booking request to the backend
+          const response = await fetch('/api/book-room', { // New API endpoint
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ roomId, userName, startDate, startTime, endTime }),
+          });
+    
+          if (response.ok) {
+            // Booking successful
+            alert('Room booked successfully!');
+            // TODO: Update the UI to reflect the booking
+          } else {
+            // Handle error
+            console.error('Error booking room:', response.status);
+            alert('There was an error booking the room.');
+          }
+        } catch (error) {
+          console.error('Error booking room:', error);
+          alert('There was an error booking the room.');
+        }
+      }
+    });
+
   } else {
     availableRoomsHeading.style.display = 'none'; // Hide the heading if no available rooms
   }
@@ -131,9 +168,9 @@ meetingRequestForm.addEventListener('submit', async (event) => {
     // No available rooms, show the broadcast request option
     const broadcastRequestOption = document.createElement('div');
     broadcastRequestOption.innerHTML = `
-      <p>No rooms available for your request.</p>
-      <button id="broadcast-request-button" class="btn btn-primary">Broadcast Request</button>
-    `;
+      <h2><p>No rooms available for your request.</p></h2>
+      <button id="broadcast-request-button" class="btn btn-primary">Send Request to Take-over Rooms</button>   
+      `;
     roomsContainer.appendChild(broadcastRequestOption);
   
     // Add event listener to the broadcast request button
